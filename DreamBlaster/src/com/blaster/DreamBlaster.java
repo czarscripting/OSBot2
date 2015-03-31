@@ -13,12 +13,14 @@ import org.osbot.rs07.script.ScriptManifest;
 
 import com.blaster.data.BlastConfig;
 import com.blaster.data.OreData;
-import com.blaster.node.*;
+import com.blaster.data.StateId;
+import com.blaster.data.TransitionId;
+import com.blaster.state.*;
 import com.blaster.util.Paint;
 import com.blaster.util.PaintItem;
 import com.blaster.util.ScriptTimer;
 
-@ScriptManifest(author = "Czar, Eliot", info = "Blast furnace professional and sophisticated programming", name = "DreamBlaster", version = 1.0, logo = "http://i.imgur.com/zKm3G3U.png")
+@ScriptManifest(author = "Czar, Eliot", info = "Blast furnace professional and sophisticated programming", name = "DreamBlaster 2", version = 1.0, logo = "http://i.imgur.com/zKm3G3U.png")
 public class DreamBlaster extends Script {
 
 	/**
@@ -28,11 +30,11 @@ public class DreamBlaster extends Script {
 	/**
 	 * Node list represents the actions in the script
 	 */
-	private ArrayList<Node> nodes = new ArrayList<>();
+	private ArrayList<ScriptState> nodes = new ArrayList<>();
 	/**
 	 * For debugging purposes
 	 */
-	private Node currentNode;
+	private ScriptState currentNode;
 	/**
 	 * Used for grabbing config data
 	 */
@@ -48,7 +50,7 @@ public class DreamBlaster extends Script {
 	/**
 	 * Paint total time elapsed since start
 	 */
-	private ScriptTimer timeElapsed;
+	private ScriptTimer timeElapsed = new ScriptTimer().start();
 	/**
 	 * Use pipes (30 crafting)
 	 */
@@ -76,22 +78,42 @@ public class DreamBlaster extends Script {
 	/**
 	 * Script GUI
 	 */
-	private BlasterGUI gui = new BlasterGUI();
+	private BlasterGUI gui = new BlasterGUI(this);
 	/**
 	 * Bars made
 	 */
 	private int barsMade;
 
 	public void onStart() {
-		gui.setVisible(true);
-		getExperienceTracker().startAll();
 		paint = new Paint(this, "Dream", "^3Blaster", "^3", Skill.SMITHING);
+		paint.mySkill = Skill.SMITHING;
+		gui = new BlasterGUI(this);
+		cfg = new BlastConfig(this);
+		getExperienceTracker().startAll();
+		gui.setVisible(true);
 		Collections.addAll(nodes, new Banking(this));
 
-		if (isLeechMode()) {
-			Collections.addAll(nodes, new Banking(this), new PutOre(this),
-					new CollectBars(this));
+		ScriptState bankState = new Banking(this);
+
+		// Keep it dynamic just to ensure no bugs.
+		if (getSkills().getDynamic(Skill.SMITHING) < 30) {
+			bankState.addTransition(TransitionId.PAY, StateId.PUT);
+		} else {
+			bankState.addTransition(TransitionId.BANK, StateId.PUT);
 		}
+
+		ScriptState actionState = new PutOre(this);
+
+		if (isLeechMode()) {
+			actionState.addTransition(TransitionId.PUT, StateId.BANK);
+		} else {
+			// TODO add rest of states (sequenced) here depending on if user chose it/can do
+			if (isPump()) {
+				actionState.addTransition(TransitionId.PUT, StateId.PUMP);
+			}
+		}
+
+		Collections.addAll(nodes, bankState);
 
 		log("// DreamBlaster initialized");
 	}
@@ -99,7 +121,7 @@ public class DreamBlaster extends Script {
 	@Override
 	public int onLoop() throws InterruptedException {
 		synchronized (this) {
-			for (Node node : nodes) {
+			for (ScriptState node : nodes) {
 				if (!myPlayer().isUnderAttack()) {
 					if (node.activate()) {
 						node.execute();
@@ -174,23 +196,11 @@ public class DreamBlaster extends Script {
 		return angle >= 0 ? angle : 360 + angle;
 	}
 
-	@Override
-	public void onPaint(Graphics2D g) {
-		if (!gui.isReady) {
-			return;
+	public String getState() {
+		if (currentNode != null) {
+			return currentNode.getClass().getSimpleName();
 		}
-		PaintItem items = new PaintItem("Items", true, true);
-		PaintItem fish = new PaintItem("  Bars ^3 " + getBarsMade() + " ^7(^3"
-				+ paint.df.format(paint.perHour(getBarsMade())) + "^7/hr)", true, true);
-		PaintItem prof = new PaintItem("  Profit ^3 " + getBarsMade() + " ^7(^3"
-				+ paint.df.format(paint.perHour(getBarsMade())) + "^7/hr)",
-				true, true);
-//		PaintItem state = new PaintItem("State ^3" + getState(),
-//				getState() != null, true);
-
-		PaintItem paints[] = { items, fish, prof, };
-
-		paint.paint(g, paints);
+		return "";
 	}
 
 	public int distance(Position p) {
@@ -209,11 +219,11 @@ public class DreamBlaster extends Script {
 		this.chosenOre = chosenOre;
 	}
 
-	public Node getCurrentNode() {
+	public ScriptState getCurrentNode() {
 		return currentNode;
 	}
 
-	public void setCurrentNode(Node currentNode) {
+	public void setCurrentNode(ScriptState currentNode) {
 		this.currentNode = currentNode;
 	}
 
@@ -289,4 +299,33 @@ public class DreamBlaster extends Script {
 		this.barsMade++;
 	}
 
+	@Override
+	public void onPaint(Graphics2D g) {
+		if (paint == null) {
+			return;
+		}
+		if (!gui.isReady) {
+			// return;
+		}
+		// PaintItem items = new PaintItem("Items", true, true);
+		// PaintItem fish = new PaintItem("  Bars ^3 " + getBarsMade() +
+		// " ^7(^3"
+		// + paint.df.format(paint.perHour(getBarsMade())) + "^7/hr)",
+		// true, true);
+		// PaintItem prof = new PaintItem("  Profit ^3 " + getBarsMade()
+		// + " ^7(^3" + paint.df.format(paint.perHour(getBarsMade()))
+		// + "^7/hr)", true, true);
+
+		PaintItem[] paints = {
+				// items, fish, prof,
+
+				new PaintItem("[DEV] ^3" + getState(), true, true),
+
+				new PaintItem("Coal config ^3" + cfg.getCoalAmount(), true,
+						true),
+
+		};
+
+		paint.paint(g, paints);
+	}
 }

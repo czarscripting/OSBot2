@@ -1,11 +1,12 @@
-package com.blaster.node;
+package com.blaster.state;
 
 import com.blaster.DreamBlaster;
+import com.blaster.data.TransitionId;
 
-public class Banking implements Node {
+public class Banking extends ScriptState {
 	
 	public Banking(DreamBlaster ctx) {
-		this.ctx = ctx;
+		super(ctx);
 	}
 	
 	DreamBlaster ctx;
@@ -16,17 +17,17 @@ public class Banking implements Node {
 	}
 
 	@Override
-	public boolean execute() {
+	public TransitionId execute() {
 		if (ctx.getBank().isOpen()) {
 			if (ctx.getInventory().isEmptyExcept("Coins", "Bucket", "Bucket of water")) {
 				
 			} else {
-				return ctx.getBank().depositAllExcept("Coins", "Bucket", "Bucket of water");
+				ctx.getBank().depositAllExcept("Coins", "Bucket", "Bucket of water");
 			}
 		} else {
 			
 		}
-		return false;
+		return TransitionId.NULL;
 	}
 	
 	

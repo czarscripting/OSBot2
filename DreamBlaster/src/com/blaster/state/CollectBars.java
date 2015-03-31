@@ -1,13 +1,14 @@
-package com.blaster.node;
+package com.blaster.state;
 
 import org.osbot.rs07.api.model.RS2Object;
 
 import com.blaster.DreamBlaster;
+import com.blaster.data.TransitionId;
 
-public class CollectBars implements Node {
+public class CollectBars extends ScriptState {
 
 	public CollectBars(DreamBlaster ctx) {
-		this.ctx = ctx;
+		super(ctx);
 	}
 
 	DreamBlaster ctx;
@@ -18,24 +19,28 @@ public class CollectBars implements Node {
 	}
 
 	@Override
-	public boolean execute() {
+	public TransitionId execute() {
 		if (canTakeBars()) {
-			return ctx.interactObj("Bar dispenser", "Take");
+			ctx.interactObj("Bar dispenser", "Take");
+			return TransitionId.NULL;
 		}
 		if (ctx.getInventory().contains("Bucket of water")) {
 			// it hasn't been cooled
 			if (ctx.getInventory().isItemSelected()) {
-				return ctx.interactObj("Bar dispenser", "Use");
+				ctx.interactObj("Bar dispenser", "Use");
+				return TransitionId.NULL;
 			} else {
-				return ctx.getInventory().interact("Use", "Bucket of water");
+				ctx.getInventory().interact("Use", "Bucket of water");
+				return TransitionId.NULL;
 			}
 		} else {
 			if (ctx.getInventory().isItemSelected()) {
 				// safety purposes
-				return ctx.getInventory().deselectItem();
+				ctx.getInventory().deselectItem();
+				return TransitionId.NULL;
 			}
 		}
-		return false;
+		return TransitionId.NULL;
 	}
 	
 	public boolean canTakeBars() {

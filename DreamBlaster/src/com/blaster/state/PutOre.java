@@ -1,20 +1,19 @@
-package com.blaster.node;
+package com.blaster.state;
 
 import org.osbot.rs07.api.map.Position;
 import org.osbot.rs07.api.model.RS2Object;
 
 import com.blaster.DreamBlaster;
+import com.blaster.data.TransitionId;
 
 /**
  * Deposits ore onto the pressure gauge
  */
-public class PutOre implements Node {
+public class PutOre extends ScriptState {
 	
 	public PutOre(DreamBlaster ctx) {
-		this.ctx = ctx;
+		super(ctx);
 	}
-	
-	DreamBlaster ctx;
 
 	@Override
 	public boolean activate() {
@@ -22,27 +21,28 @@ public class PutOre implements Node {
 	}
 
 	@Override
-	public boolean execute() {
+	public TransitionId execute() {
 		if (ctx.getDialogues().isPendingContinuation()) {
 			ctx.getDialogues().clickContinue();
-			return true;
+			return TransitionId.NULL;
 		}
 		if (ctx.getDialogues().isPendingOption()) {
 			ctx.getDialogues().selectOption(1);
-			return true;
+			return TransitionId.NULL;
 		}
 		if (getBelt() == null) {
-			return false;
+			return TransitionId.NULL;
 		}
 		if (closerToBank()) {
 			Position walkPos = new Position(getBelt().getPosition().getX() - 5, getBelt().getPosition().getY(), getBelt().getPosition().getZ());
 			if (ctx.getMap().walk(walkPos)) {
-				return true;
+				return TransitionId.NULL;
 			}
 		} else {
-			return ctx.interactObj("Conveyor belt", "Put-ore-on");
+			ctx.interactObj("Conveyor belt", "Put-ore-on");
+			return TransitionId.BANK;
 		}
-		return false;
+		return TransitionId.NULL;
 	}
 	
 	public boolean closerToBank() {

@@ -23,7 +23,7 @@ import org.osbot.rs07.api.ui.Skill;
 
 import com.blaster.DreamBlaster;
 
-public class Paint implements KeyListener, MouseListener, MouseMotionListener {
+public class Paint {
 
 	private DreamBlaster script;
 
@@ -31,14 +31,9 @@ public class Paint implements KeyListener, MouseListener, MouseMotionListener {
 	public String objectiveFontPath = "http://www.huttonconstruction.com/wp-content/themes/hcc/css/fonts/eurostile-webfont.ttf";
 	public Font bigFont;
 	public Font objectiveFont;
-	public Font epicFont;
 	public Graphics graphics;
 
-	private int combatExp;
 	public Skill mySkill = Skill.ATTACK;
-
-	// Buttons
-	public CzarButton[] buttons;
 
 	// Features
 	public static final int FONT_BOLD = 1;
@@ -53,10 +48,6 @@ public class Paint implements KeyListener, MouseListener, MouseMotionListener {
 	public static final int FONT_SLAYER = 256;
 	public static final int FONT_EPIC = 512;
 
-	// Custom skills
-	public int[] startLevels = new int[25];
-	public int[] startExps = new int[25];
-
 	// Paint start coords
 	public int originalX = 15;
 	public int originalY = 65;
@@ -64,13 +55,7 @@ public class Paint implements KeyListener, MouseListener, MouseMotionListener {
 	// Color theme (replaces yellow)
 	public String colorTheme = "^3";
 
-	private Tab tab = Tab.GENERAL;
-
 	private String firstString, secondString;
-
-	public enum Tab {
-		GENERAL, FISHING, PROFIT, WELCOME
-	}
 
 	public PaintItem getDefault() {
 		return null;
@@ -97,50 +82,43 @@ public class Paint implements KeyListener, MouseListener, MouseMotionListener {
 		}
 		int x = originalX;
 		int y = originalY;
-		switch (tab) {
-		case WELCOME:
-			drawSpace(0, 0, 765, 565);
-			break;
-		case GENERAL:
-			graphics.setColor(Color.BLACK);
-			graphics.drawLine(originalX, originalY + 6, originalX + 215,
-					originalY + 6);
-			graphics.drawLine(originalX, originalY + 41, originalX + 215,
-					originalY + 41);
-			graphics.setColor(Color.WHITE);
-			graphics.drawLine(originalX, originalY + 5, originalX + 215,
-					originalY + 5);
-			graphics.drawLine(originalX, originalY + 40, originalX + 215,
-					originalY + 40);
-			setRenderingHints();
-			String czar = firstString;
-			String aio = secondString;
-			String time = "" + script.getVersion();
-			drawString(czar, x, y, FONT_EXTRABIG | FONT_BOLD | FONT_SHADOW);
-			x += getStringWidth(czar);
-			drawString(aio, x, y, FONT_EXTRABIG | FONT_BOLD | FONT_SHADOW);
-			x += getStringWidth(aio);
-			drawString(time, x, y, FONT_BIG | FONT_SHADOW);
-			x += getStringWidth(time);
-			y += getStringHeight(czar);
-			x = originalX + 24;
-			y = originalY + 33;
+		graphics.setColor(Color.BLACK);
+		graphics.drawLine(originalX, originalY + 6, originalX + 215,
+				originalY + 6);
+		graphics.drawLine(originalX, originalY + 41, originalX + 215,
+				originalY + 41);
+		graphics.setColor(Color.WHITE);
+		graphics.drawLine(originalX, originalY + 5, originalX + 215,
+				originalY + 5);
+		graphics.drawLine(originalX, originalY + 40, originalX + 215,
+				originalY + 40);
+		setRenderingHints();
+		String czar = firstString;
+		String aio = secondString;
+		String time = "" + script.getVersion();
+		drawString(czar, x, y, FONT_EXTRABIG | FONT_BOLD | FONT_SHADOW);
+		x += getStringWidth(czar);
+		drawString(aio, x, y, FONT_EXTRABIG | FONT_BOLD | FONT_SHADOW);
+		x += getStringWidth(aio);
+		drawString(time, x, y, FONT_BIG | FONT_SHADOW);
+		x += getStringWidth(time);
+		y += getStringHeight(czar);
+		x = originalX + 24;
+		y = originalY + 33;
 
-			int level2 = script.getSkills().getStatic(mySkill);
+		int level2 = script.getSkills().getStatic(mySkill);
 
-			String level = "Level: " + colorTheme + "" + level2 + "";
-			time = "" + formatTimePaint(getTime());
+		String level = "Level: " + colorTheme + "" + level2 + "";
+		time = "" + formatTimePaint(getTime());
 
-			drawString(level, x, y, FONT_BIG | FONT_SHADOW);
-			x = originalX + 224 / 2;
-			drawString(time, x, y, FONT_BIG | FONT_SHADOW);
-			y += getStringHeight(time) + 15;
+		drawString(level, x, y, FONT_BIG | FONT_SHADOW);
+		x = originalX + 224 / 2;
+		drawString(time, x, y, FONT_BIG | FONT_SHADOW);
+		y += getStringHeight(time) + 15;
 
-			x = originalX;
-			y = originalY + 64;
-			y += drawCustom(x, y, p);
-			break;
-		}
+		x = originalX;
+		y = originalY + 64;
+		y += drawCustom(x, y, p);
 		return y;
 	}
 
@@ -173,10 +151,6 @@ public class Paint implements KeyListener, MouseListener, MouseMotionListener {
 		if (fontSlayer) {
 			graphics.setFont(objectiveFont);
 			graphics.setFont(graphics.getFont().deriveFont(24.0f));
-		}
-		if (fontEpic) {
-			graphics.setFont(epicFont);
-			graphics.setFont(graphics.getFont().deriveFont(52.0f));
 		}
 		if (isBold) {
 			graphics.setFont(graphics.getFont().deriveFont(Font.BOLD));
@@ -226,14 +200,15 @@ public class Paint implements KeyListener, MouseListener, MouseMotionListener {
 			graphics.drawString(s.split("\n")[i], x, y);
 		}
 	}
-	
+
 	private Skills skillManager;
 
 	// TODO
-	public Paint(DreamBlaster script, String name1, String name2, String color1,
-			Skill s) {
+	public Paint(DreamBlaster script, String name1, String name2,
+			String color1, Skill s) {
 		this.skillManager = new Skills(script);
 		this.script = script;
+		randomXp = script.random(200, 2000);
 		firstString = name1;
 		secondString = name2;
 		this.mySkill = s;
@@ -245,14 +220,9 @@ public class Paint implements KeyListener, MouseListener, MouseMotionListener {
 			URL objectiveFontURL = new URL(objectiveFontPath);
 			objectiveFont = Font.createFont(Font.TRUETYPE_FONT,
 					objectiveFontURL.openStream()).deriveFont(Font.PLAIN, 20);
-			epicFont = new Font("Vikings", Font.PLAIN, 52);
 		} catch (MalformedURLException e) {
 		} catch (FontFormatException e) {
 		} catch (IOException e) {
-		}
-		for (int i = 0; i < 22; i++) {
-			startLevels[i] = script.getSkills().getStatic(Skill.forId(i));
-			startExps[i] = script.getSkills().getExperience(Skill.forId(i));
 		}
 	}
 
@@ -260,7 +230,7 @@ public class Paint implements KeyListener, MouseListener, MouseMotionListener {
 		return (int) ((3600000.0 / (double) getTime()) * amount);
 	}
 
-	public int paint(Graphics2D g, PaintItem... p) {
+	public int paint(Graphics g, PaintItem... p) {
 		if (this.graphics == null) {
 			this.graphics = g;
 			return 0;
@@ -371,7 +341,9 @@ public class Paint implements KeyListener, MouseListener, MouseMotionListener {
 	public int getExp(Skill lvl) {
 		return script.getSkills().getExperience(lvl);
 	}
-	
+
+	public int randomXp = 0;
+
 	public double round(double num, int multipleOf) {
 		return Math.round((num + multipleOf / 2) / multipleOf) * multipleOf;
 	}
@@ -383,12 +355,13 @@ public class Paint implements KeyListener, MouseListener, MouseMotionListener {
 		x = x + 8;
 		int exp = script.getExperienceTracker().getGainedXP(mySkill);
 		int level = script.getSkills().getStatic(mySkill);
+
 		int xpHour = 0;
 
 		if (exp > 0) {
 			xpHour = (int) ((3600000.0 / (double) getTime()) * exp);
 		}
-		
+
 		long TTL = 0;
 		int ultimateLevel = 99;
 		if (level < 90) {
@@ -396,7 +369,10 @@ public class Paint implements KeyListener, MouseListener, MouseMotionListener {
 		}
 		if (exp > 0 && level != 99) {
 			if (level > 0) {
-				TTL = skillManager.getTimeTillLevel(mySkill.getId(), exp, ultimateLevel, getTime());
+				TTL = (long) ((getTime() * (xpTable[ultimateLevel] - exp)) / exp);
+
+				// TTL = skillManager.getTimeTillLevel(mySkill.getId(), exp,
+				// ultimateLevel, getTime());
 			}
 		}
 
@@ -444,7 +420,7 @@ public class Paint implements KeyListener, MouseListener, MouseMotionListener {
 		y += 15;
 		drawString(
 				"  exp to " + ultimateLevel + " " + colorTheme + ""
-						+ df.format(getExpLeft(exp, ultimateLevel))
+						+ df.format(getExpLeft(mySkill, ultimateLevel))
 						+ "^7xp", x, y, FONT_OBJECTIVE | FONT_SHADOW);
 		y += 15;
 		drawString("  time to " + ultimateLevel + " " + formatTime(TTL) + "",
@@ -463,12 +439,16 @@ public class Paint implements KeyListener, MouseListener, MouseMotionListener {
 	}
 
 	public void drawSpace(int x, int y, int w, int h) {
+		drawSpace(x, y, w, h, Color.BLACK);
+	}
+
+	public void drawSpace(int x, int y, int w, int h, Color c) {
 		if (graphics == null) {
 			return;
 		}
 		((Graphics2D) graphics).setComposite(AlphaComposite.getInstance(
 				AlphaComposite.SRC_OVER, 0.75f));
-		graphics.setColor(Color.BLACK);
+		graphics.setColor(c);
 		graphics.fillRect(x, y, w, h);
 		((Graphics2D) graphics).setComposite(AlphaComposite.getInstance(
 				AlphaComposite.SRC_OVER, 1f));
@@ -519,14 +499,6 @@ public class Paint implements KeyListener, MouseListener, MouseMotionListener {
 		return xpTotal - xpDone;
 	}
 
-	public int getCombatExp() {
-		return combatExp;
-	}
-
-	public void setCombatExp(int combatExp) {
-		this.combatExp = combatExp;
-	}
-
 	public static int[] xpTable = { 0, 0, 83, 174, 276, 388, 512, 650, 801,
 			969, 1154, 1358, 1584, 1833, 2107, 2411, 2746, 3115, 3523, 3973,
 			4470, 5018, 5624, 6291, 7028, 7842, 8740, 9730, 10824, 12031,
@@ -541,105 +513,4 @@ public class Paint implements KeyListener, MouseListener, MouseMotionListener {
 			7195629, 7944614, 8771558, 9684577, 10692629, 11805606, 13034431 };
 
 	public DecimalFormat df = new DecimalFormat();
-
-	@Override
-	public void mouseClicked(MouseEvent e) {
-	}
-
-	@Override
-	public void mouseEntered(MouseEvent e) {
-		// if (s.actionTimer > 0) {
-		// return;
-		// }
-	}
-
-	@Override
-	public void mouseExited(MouseEvent e) {
-		// if (s.actionTimer > 0) {
-		// return;
-		// }
-	}
-
-	public void drawSwitch() {
-		if (graphics == null) {
-			return;
-		}
-	}
-
-	@Override
-	public void mousePressed(MouseEvent e) {
-		int mouseX = e.getX();
-		int mouseY = e.getY();
-		if (e.getModifiers() != InputEvent.BUTTON1_MASK) {
-			/*
-			 * Right click support will be added in future For more details on
-			 * click
-			 */
-			return;
-		}
-		for (CzarButton b : buttons) {
-			if (b == null) {
-				continue;
-			}
-			if (mouseX >= b.x && mouseX <= b.x + b.w && mouseY >= b.y
-					&& mouseY <= b.y + b.h) {
-				script.log("Tab [" + b.buttonName + "] has no PaintTab");
-			}
-		}
-	}
-
-	@Override
-	public void mouseReleased(MouseEvent e) {
-		// if (s.actionTimer > 0) {
-		// return;
-		// }
-	}
-
-	@Override
-	public void mouseDragged(MouseEvent e) {
-		// if (s.actionTimer > 0) {
-		// return;
-		// }
-	}
-
-	@Override
-	public void mouseMoved(MouseEvent e) {
-		// if (s.actionTimer > 0) {
-		// return;
-		// }
-	}
-
-	@Override
-	public void keyPressed(KeyEvent e) {
-	}
-
-	@Override
-	public void keyReleased(KeyEvent e) {
-	}
-
-	@Override
-	public void keyTyped(KeyEvent e) {
-	}
-
-	public class CzarButton {
-		public String buttonName;
-		public int x, y, w, h;
-
-		public CzarButton(String n, int x, int y, int w, int h) {
-			this.buttonName = n;
-			this.x = x;
-			this.y = y;
-			this.w = w;
-			this.h = h;
-		}
-
-		public void draw(Graphics2D g) {
-			if (g == null) {
-				return;
-			}
-			drawSpace(x, y, w, h);
-			drawString(colorTheme + buttonName, x, y + 20, FONT_OBJECTIVE
-					| FONT_CENTER | FONT_SHADOW);
-		}
-	}
 }

@@ -5,7 +5,6 @@ import org.osbot.rs07.api.ui.Tab;
 import org.osbot.rs07.script.MethodProvider;
 
 import com.blaster.DreamBlaster;
-import com.czar.CzarScript;
 
 /**
  * This class is for all the skill calculations.

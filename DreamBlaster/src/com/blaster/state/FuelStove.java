@@ -1,14 +1,15 @@
-package com.blaster.node;
+package com.blaster.state;
 
 import com.blaster.DreamBlaster;
+import com.blaster.data.TransitionId;
 
 /**
  * Deposits ore onto the pressure gauge
  */
-public class FuelStove implements Node {
+public class FuelStove extends ScriptState {
 	
 	public FuelStove(DreamBlaster ctx) {
-		this.ctx = ctx;
+		super(ctx);
 	}
 	
 	DreamBlaster ctx;
@@ -19,12 +20,13 @@ public class FuelStove implements Node {
 	}
 
 	@Override
-	public boolean execute() {
+	public TransitionId execute() {
 		if (ctx.getInventory().contains("Spadeful of coke")) {
-			return ctx.interactObj("Stove", "Refuel");
+			ctx.interactObj("Stove", "Refuel");
 		} else {
-			return ctx.interactObj("Coke", "Collect");
+			ctx.interactObj("Coke", "Collect");
 		}
+		return TransitionId.NULL;
 	}
 
 }

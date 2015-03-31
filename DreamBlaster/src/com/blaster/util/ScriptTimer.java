@@ -10,7 +10,7 @@ public class ScriptTimer {
 		return new ScriptTimer();
 	}
 
-	private ScriptTimer() {
+	public ScriptTimer() {
 		reset();
 	}
 
